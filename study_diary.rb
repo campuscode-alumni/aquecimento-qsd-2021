@@ -1,14 +1,10 @@
 require 'io/console'
 
-INSERT = 1
-VIEW_ALL = 2
-SEARCH = 3
+INSERT       = 1
+VIEW_ALL     = 2
+SEARCH       = 3
 MARK_AS_DONE = 4
-EXIT = 5
-
-def welcome
-  'Boas-vindas ao Diário de Estudos, seu companheiro para estudar!'
-end
+EXIT         = 5
 
 def menu
   puts <<~MENU
@@ -74,7 +70,7 @@ def mark_study_item_as_done(study_items)
 end
 
 clear
-puts welcome
+puts 'Boas-vindas ao Diário de Estudos, seu companheiro para estudar!'
 
 study_items = []
 option = menu
