@@ -1,4 +1,5 @@
 require 'io/console'
+require_relative 'study_item'
 
 INSERT       = 1
 VIEW_ALL     = 2
@@ -20,13 +21,9 @@ def menu
   gets.to_i
 end
 
-def create_study_item
-  print 'Digite o título do seu item de estudo: '
-  title = gets.chomp
-  print 'Digite a categoria do seu item de estudo: '
-  category = gets.chomp
-  puts "Item '#{title}' da categoria '#{category}' cadastrado com sucesso!"
-  { title: title, category: category, done: false }
+def print_study_items(collection)
+  puts collection
+  puts 'Nenhum item encontrado' if collection.empty?
 end
 
 def clear
@@ -44,48 +41,38 @@ def wait_and_clear
   clear
 end
 
-def print_study_items(collection)
-  collection.each.with_index(1) do |item, index|
-    puts "##{index} - #{item[:title]} - #{item[:category]}#{' - Finalizada' if item[:done]}"
-  end
-  puts 'Nenhum item encontrado' if collection.empty?
-end
-
-def search_study_items(collection)
+def search_study_items
   print 'Digite uma palavra para procurar: '
   term = gets.chomp
-  collection.filter do |item|
-    item[:title].include? term
-  end
+  StudyItem.search(term)
 end
 
-def mark_study_item_as_done(study_items)
-  not_finalized = study_items.filter { |item| !item[:done] }
+def mark_study_item_as_done
+  not_finalized = StudyItem.undone
   print_study_items(not_finalized)
   return if not_finalized.empty?
 
   print 'Digite o número que deseja finalizar: '
   index = gets.to_i
-  not_finalized[index - 1][:done] = true
+  not_finalized[index - 1].done!
 end
 
 clear
 puts 'Boas-vindas ao Diário de Estudos, seu companheiro para estudar!'
 
-study_items = []
 option = menu
 
 loop do
   case option
   when INSERT
-    study_items << create_study_item
+    StudyItem.create
   when VIEW_ALL
-    print_study_items(study_items)
+    print_study_items(StudyItem.all)
   when SEARCH
-    found_items = search_study_items(study_items)
+    found_items = search_study_items
     print_study_items(found_items)
   when MARK_AS_DONE
-    mark_study_item_as_done(study_items)
+    mark_study_item_as_done
   when EXIT
     break
   else
