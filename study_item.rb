@@ -1,18 +1,15 @@
 require_relative 'category'
+require 'sqlite3'
 
 class StudyItem
   attr_reader :title, :category, :id
 
-  @@next_index = 1
-  @@study_items = []
-
-  def initialize(title:, category:)
-    @id = @@next_index
+  def initialize(id: nil, title:, category:, done: false, created_at: nil)
+    @id = id
     @title = title
     @category = category
-    @done = false
-    @@next_index += 1
-    @@study_items << self
+    @done = done
+    @created_at = created_at
   end
 
   def done?
@@ -22,7 +19,7 @@ class StudyItem
   def done!
     @done = true
   end
-  
+
   def undone?
     !@done
   end
@@ -43,10 +40,24 @@ class StudyItem
     category = Category.index(gets.to_i - 1)
     puts "Item '#{title}' da categoria '#{category}' cadastrado com sucesso!"
     StudyItem.new(title: title, category: category)
+    db = SQLite3::Database.open 'db/database.db'
+    db.execute(<<~SQL, title, category.to_s, 0)
+      INSERT INTO study_items (title, category, done)
+      VALUES (?, ?, ?)
+    SQL
+  ensure
+    db.close if db
   end
 
   def self.all
-    @@study_items
+    db = SQLite3::Database.open 'db/database.db'
+    db.results_as_hash = true 
+    results = db.execute("SELECT * FROM study_items")
+    results
+      .map { |hash| hash.transform_keys!(&:to_sym) }
+      .map { |item| StudyItem.new(**item) }
+  ensure
+    db.close if db
   end
 
   def self.search(term)
